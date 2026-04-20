@@ -15,7 +15,7 @@ class SurveyApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
-      home: const SurveyFormScreen(),
+      home: const AppStartFlow(),
     );
   }
 
@@ -79,6 +79,229 @@ class SurveyApp extends StatelessWidget {
           minimumSize: const Size.fromHeight(54),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+}
+
+class AppStartFlow extends StatefulWidget {
+  const AppStartFlow({super.key});
+
+  @override
+  State<AppStartFlow> createState() => _AppStartFlowState();
+}
+
+class _AppStartFlowState extends State<AppStartFlow> {
+  bool _showOnboarding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.delayed(const Duration(milliseconds: 1700), () {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _showOnboarding = true;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 460),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      child: _showOnboarding
+          ? OnboardingScreen(
+        key: const ValueKey<String>('onboarding'),
+        onGetStarted: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute<void>(
+              builder: (_) => const SurveyFormScreen(),
+            ),
+          );
+        },
+      )
+          : const SplashScreen(key: ValueKey<String>('splash')),
+    );
+  }
+}
+
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme scheme = theme.colorScheme;
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[
+              scheme.surface,
+              scheme.surfaceContainerHighest.withValues(alpha: 0.8),
+            ],
+          ),
+        ),
+        child: Center(
+          child: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 800),
+            tween: Tween<double>(begin: 0.95, end: 1),
+            curve: Curves.easeOut,
+            builder: (BuildContext context, double value, Widget? child) {
+              return Opacity(
+                opacity: value,
+                child: Transform.scale(scale: value, child: child),
+              );
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Container(
+                  width: 86,
+                  height: 86,
+                  decoration: BoxDecoration(
+                    color: scheme.primary,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Icon(
+                    Icons.forum_rounded,
+                    size: 42,
+                    color: scheme.onPrimary,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'Survey Studio',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Thoughtful feedback starts here',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.72),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class OnboardingScreen extends StatelessWidget {
+  const OnboardingScreen({super.key, required this.onGetStarted});
+
+  final VoidCallback onGetStarted;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme scheme = theme.colorScheme;
+    final bool isCompact = MediaQuery
+        .sizeOf(context)
+        .width < 420;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+              isCompact ? 16 : 22, 16, isCompact ? 16 : 22, 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(34),
+              border: Border.all(color: scheme.outline.withValues(alpha: 0.32)),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                  isCompact ? 20 : 26, 24, isCompact ? 20 : 26, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Expand Your\nKnowledge !',
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      height: 1.15,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Learn from every response and design better experiences.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.72),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  FilledButton.tonalIcon(
+                    onPressed: onGetStarted,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(72, 42),
+                      maximumSize: const Size(72, 42),
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22)),
+                    ),
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                    label: const Text(''),
+                  ),
+                  const Spacer(),
+                  Expanded(
+                    flex: 3,
+                    child: Center(
+                      child: Image.asset(
+                        'lib/assets/hand-drawn-community-spirit-illustration.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (BuildContext context,
+                            Object _,
+                            StackTrace? _,) {
+                          return Container(
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: scheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            child: Text(
+                              'Illustration not found in assets.',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: onGetStarted,
+                      child: const Text('Get Started'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
